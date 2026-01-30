@@ -1,10 +1,10 @@
-package ru.edu.taskmanagemntsystem.controller;
+package ru.edu.taskmanagementsystem.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.edu.taskmanagemntsystem.dto.TaskDtoRequest;
-import ru.edu.taskmanagemntsystem.model.TaskM;
-import ru.edu.taskmanagemntsystem.service.TaskService;
+import ru.edu.taskmanagementsystem.dto.TaskDtoRequest;
+import ru.edu.taskmanagementsystem.model.TaskM;
+import ru.edu.taskmanagementsystem.service.TaskService;
 
 //import com.fasterxml.jackson.databind.ObjectMapper;
 

@@ -1,4 +1,4 @@
-package ru.edu.taskmanagemntsystem.model;
+package ru.edu.taskmanagementsystem.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,7 +17,7 @@ public class TaskM {
     private String textOfTask;
     private Status status;
     @ManyToOne
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "author")
     private User author;
     private LocalDateTime dateOfCreate;
     private LocalDateTime dateOfLastChange;

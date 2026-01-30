@@ -1,7 +1,7 @@
-package ru.edu.taskmanagemntsystem.repository;
+package ru.edu.taskmanagementsystem.repository;
 
 import org.springframework.stereotype.Repository;
-import ru.edu.taskmanagemntsystem.model.TaskM;
+import ru.edu.taskmanagementsystem.model.TaskM;
 
 import java.util.ArrayList;
 import java.util.HashMap;

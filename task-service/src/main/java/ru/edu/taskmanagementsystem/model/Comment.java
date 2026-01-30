@@ -1,4 +1,4 @@
-package ru.edu.taskmanagemntsystem.model;
+package ru.edu.taskmanagementsystem.model;
 
 import lombok.Data;
 

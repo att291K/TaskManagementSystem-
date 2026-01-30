@@ -1,4 +1,4 @@
-package ru.edu.taskmanagemntsystem.model;
+package ru.edu.taskmanagementsystem.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -13,6 +13,7 @@ public class User {
     private Long id;
     private String name;
     private String email;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TaskM> events;
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskM> tasks;
+    private List<Comment> comments;
 }

@@ -1,6 +1,5 @@
-package ru.edu.taskmanagemntsystem.dto;
+package ru.edu.taskmanagementsystem.dto;
 
-import lombok.Data;
 import lombok.NonNull;
 
 //@Data

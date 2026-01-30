@@ -1,12 +1,12 @@
-package ru.edu.taskmanagemntsystem.service.impl;
+package ru.edu.taskmanagementsystem.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.edu.taskmanagemntsystem.model.TaskM;
-import ru.edu.taskmanagemntsystem.repository.TaskRepository;
-import ru.edu.taskmanagemntsystem.service.TaskService;
+import ru.edu.taskmanagementsystem.model.TaskM;
+import ru.edu.taskmanagementsystem.repository.TaskRepository;
+import ru.edu.taskmanagementsystem.service.TaskService;
 
 import java.time.LocalDateTime;
 

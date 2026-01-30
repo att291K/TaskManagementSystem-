@@ -1,6 +1,6 @@
-package ru.edu.taskmanagemntsystem.service;
+package ru.edu.taskmanagementsystem.service;
 
-import ru.edu.taskmanagemntsystem.model.TaskM;
+import ru.edu.taskmanagementsystem.model.TaskM;
 
 
 public interface TaskService {
