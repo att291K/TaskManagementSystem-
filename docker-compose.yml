@@ -27,3 +27,19 @@ services:
       - "8082:8082"
     depends_on:
       - kafka
+
+  task-service:
+    build: ./task-service
+    container_name: task-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
