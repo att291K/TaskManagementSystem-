@@ -20,10 +20,9 @@ public class TaskM {
     @Column(name = "status_of_event", nullable = false)
     private Status status;
     private LocalDateTime dateOfCreate;
-    /*@ManyToOne
+    /*@ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private User author;
-    private LocalDateTime dateOfCreate;
     private LocalDateTime dateOfLastChange;
     private LocalDateTime dateOfClose;
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)

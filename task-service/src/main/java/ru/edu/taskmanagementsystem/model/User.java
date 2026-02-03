@@ -17,7 +17,7 @@ public class User {
     private String password;
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
-    //@OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    //@OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = false)
     //private List<TaskM> tasks;
     //@OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     //private List<Comment> comments;
