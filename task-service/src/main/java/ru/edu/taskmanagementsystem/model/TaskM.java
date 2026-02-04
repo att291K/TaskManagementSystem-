@@ -2,9 +2,9 @@ package ru.edu.taskmanagementsystem.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import ru.edu.taskmanagementsystem.model.enums.Status;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data

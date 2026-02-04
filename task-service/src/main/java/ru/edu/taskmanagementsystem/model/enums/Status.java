@@ -1,4 +1,4 @@
-package ru.edu.taskmanagementsystem.model;
+package ru.edu.taskmanagementsystem.model.enums;
 
 public enum Status {
     Created,  //создано
