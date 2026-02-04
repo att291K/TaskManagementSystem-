@@ -4,7 +4,7 @@ import jdk.jshell.Snippet;
 import org.springframework.stereotype.Component;
 import ru.edu.taskmanagementsystem.dto.TaskDtoRequest;
 import ru.edu.taskmanagementsystem.dto.TaskDtoResponse;
-import ru.edu.taskmanagementsystem.model.Status;
+import ru.edu.taskmanagementsystem.model.enums.Status;
 import ru.edu.taskmanagementsystem.model.TaskM;
 
 import java.time.LocalDateTime;
