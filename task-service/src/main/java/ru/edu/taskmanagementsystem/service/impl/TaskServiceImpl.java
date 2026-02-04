@@ -1,15 +1,18 @@
 package ru.edu.taskmanagementsystem.service.impl;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.edu.taskmanagementsystem.aop.annotations.Audited;
+import ru.edu.taskmanagementsystem.model.User;
 import ru.edu.taskmanagementsystem.model.enums.Status;
 import ru.edu.taskmanagementsystem.model.TaskM;
 import ru.edu.taskmanagementsystem.repository.TaskRepository;
 import ru.edu.taskmanagementsystem.service.TaskService;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 
 @Service
 @AllArgsConstructor
@@ -59,19 +62,17 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.existsById(id);
     }
 
-    /*@PostConstruct
+    @PostConstruct
     public void fillDatabase() {
-        User user = new User();
-        user.setUsername("admin");
-        user.setPassword("admin");
-        var role = new HashSet<String>() ;
-        role.add("MANAGER");
-        user.setRoles(role);
-        TaskM task = new TaskM();
-        task.setTitle("task description 1");
-        task.setDescription("");
-        task.setDateOfCreate(LocalDateTime.now());
-        task.setStatus(Status.Created);
-        taskRepository.save(task);
-    }*/
+        try {
+            TaskM task = new TaskM();
+            task.setTitle("task description 1");
+            task.setDescription("");
+            task.setDateOfCreate(LocalDateTime.now());
+            task.setStatus(Status.Created);
+            taskRepository.save(task);
+        }
+        catch (Exception ignored) {}
+
+    }
 }
