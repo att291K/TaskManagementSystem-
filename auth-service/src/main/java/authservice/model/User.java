@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "users_table")
+@Table(name = "user_table")
 @Data
 public class User implements UserDetails {
     @Id
