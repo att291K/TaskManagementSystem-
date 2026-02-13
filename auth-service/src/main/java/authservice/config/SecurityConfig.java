@@ -31,11 +31,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Отключаем CSRF, если используем JWT
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        //.requestMatchers("/").permitAll()  // Разрешаем доступ к /login
+                        .requestMatchers("/custom-login", "/login", "/getRoles", "/css/**", "/js/**").permitAll()  // Разрешаем доступ к /login
                         .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации
                 )
-                .formLogin(FormLoginConfigurer::permitAll)
-                .logout(LogoutConfigurer::permitAll)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.Collections;
+
 @Service
 @AllArgsConstructor
 public class UserDetailServiceImpl implements UserDetailsService {
@@ -29,6 +31,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
         User user = new User();
         user.setUsername("testUser");
         user.setPassword(passwordEncoder.encode("testPassword"));
+        user.setRoles(Collections.singleton("MANAGER"));
         userRepository.save(user);
     }
 }
