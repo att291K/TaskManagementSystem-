@@ -26,7 +26,7 @@ public class JwtUtilsImpl implements JwtUtils {
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList()))
                 .issuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
                 .compact();
     }
