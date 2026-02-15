@@ -9,6 +9,10 @@
     </parent>
     <artifactId>task-service</artifactId>
 
+    <properties>
+        <jjwt.version>0.13.0</jjwt.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -75,12 +79,32 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
         </dependency>
+<!-- work with jwt -->
         <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>auth-service</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-extensions</artifactId>
+            <version>${jjwt.version}</version>
+            <type>pom</type>
+        </dependency>
+
     </dependencies>
 
     <build>
