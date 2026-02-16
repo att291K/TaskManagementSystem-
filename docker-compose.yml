@@ -45,8 +45,8 @@ services:
       - kafka
 
   notification-service:
-    build: ./NotificationService
-    container_name: auth-service
+    build: ./notification-service
+    container_name: notification-service
     ports:
       - "8083:8083"
     depends_on:
