@@ -19,6 +19,7 @@
         <module>assignment-service</module>
         <module>task-service</module>
         <module>auth-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>
