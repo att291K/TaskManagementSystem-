@@ -1,12 +1,11 @@
 package ru.edu.authservice.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import ru.edu.authservice.service.JwtUtils;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Set;
 
@@ -14,19 +13,18 @@ import java.util.Set;
 @AllArgsConstructor
 public class GetRolesController {
     private final JwtUtils jwtUtils;
-    private final ObjectMapper objectMapper;
 
-    @PostMapping("/getRoles")
-    public ResponseEntity<?> getRolesFromToken(@RequestBody @NonNull String json) {
-        JsonNode node = objectMapper.readTree(json);
-        String token = node.get("token").asText(null);
+    @GetMapping("/getRoles")
+    public ResponseEntity<?> getRolesFromToken(@NonNull HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
 
-        if (token == null) {
-            return ResponseEntity.badRequest().body("No token");
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+
+            Set<String> roles = jwtUtils.extractRoles(token);
+            return ResponseEntity.ok().body(roles);
         }
 
-        Set<String> roles = jwtUtils.extractRoles(token);
-
-        return ResponseEntity.ok().body(roles);
+        return ResponseEntity.status(401).body(null);
     }
 }
