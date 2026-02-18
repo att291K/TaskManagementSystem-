@@ -119,7 +119,15 @@ async function fetchAssignments(taskIds) {
 }
 
 async function fetchUsers() {
-    return mockUsers; //fetchJson("/users");
+    const jwt = localStorage.getItem('jwt');
+    return fetchJson(`${AUTH_API}/users`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${jwt}`
+        }
+    });
+    //return mockUsers; //fetchJson("/users");
 }
 
 async function getRoles() {
@@ -132,9 +140,18 @@ async function getRoles() {
 }
 
 // PATCH /tasks  { id: 5, status: "OPEN" }
+// async function patchTaskStatus(taskId, status) {
+//     return fetchJson(`/tasks`, {
+//         method: "PATCH",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ id: taskId, status })
+//     });
+// }
+
 async function patchTaskStatus(taskId, status) {
     const jwt = localStorage.getItem('jwt');
     return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
+
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -156,9 +173,17 @@ async function postAssignment(taskId, employeeId) {
 }
 
 // POST /tasks  { title, description, status }
+// async function createTask(payload) {
+//     return fetchJson(`/tasks`, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(payload)
+//     });
+// }
 async function createTask(payload) {
     const jwt = localStorage.getItem('jwt');
     return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
+
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -323,7 +348,9 @@ async function loadData() {
             users = await fetchUsers();
         }
 
-        const taskIds = tasks?.map(task => task.id)
+        //const taskIds = tasks?.map(task => task.id)
+        const taskIds = Array.isArray(tasks) ? tasks.map(t => t.id) : [];
+
 
         console.log(taskIds)
 
@@ -336,7 +363,12 @@ async function loadData() {
             const roles = await getRoles()
             role = roles[0]
         } catch(err) {
-            window.location.href = '/custom-login.html';
+            //window.location.href = '/custom-login.html';
+            if (err.message.includes("401") || err.message.includes("403")) {
+                window.location.href = '/custom-login.html';
+            } else {
+                showError("Ошибка загрузки ролей: " + err.message);
+            }
         }
 
         renderTasks(tasks, assignmentsMap, users, role);
@@ -379,7 +411,7 @@ tasksContainer.addEventListener("change", async (e) => {
         }
 
 // TODO: turn on when all will be ready
-        <!--        await loadData();-->
+    await loadData();
     } catch (err) {
         showError(err?.message || String(err));
     } finally {
