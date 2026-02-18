@@ -6,6 +6,8 @@ services:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - app-network
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -17,8 +19,12 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Один listener для всех
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
 
   assignment-service:
     build: ./assignment-service
@@ -27,6 +33,10 @@ services:
       - "8082:8082"
     depends_on:
       - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - app-network
 
   task-service:
     build: ./task-service
@@ -35,6 +45,10 @@ services:
       - "8081:8081"
     depends_on:
       - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - app-network
 
   auth-service:
     build: ./auth-service
@@ -43,6 +57,10 @@ services:
       - "8080:8080"
     depends_on:
       - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - app-network
 
   notification-service:
     build: ./notification-service
@@ -51,11 +69,21 @@ services:
       - "8083:8083"
     depends_on:
       - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - app-network
 
   frontend:
-    image: nginx:alpine # Use the official lightweight NGINX image
+    image: nginx:alpine
     ports:
-      - "8084:80"       # Map host port 8080 to container port 80
+      - "8084:80"
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro # Mount local html directory as read-only volume
+      - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - app-network
     restart: always
+
+networks:
+  app-network:
+    driver: bridge
