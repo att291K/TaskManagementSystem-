@@ -106,7 +106,7 @@
 
 <script>
   document.getElementById('login-form').addEventListener('submit', async function(e) {
-    e.preventDefault(); // Не отправлять как обычную форму
+    e.preventDefault();
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
@@ -125,9 +125,10 @@
         const data = await response.json();
         // Сохраняем токен в localStorage
         localStorage.setItem('jwt', data.token);
+        localStorage.setItem('isAuthenticated', 'true');
 
-        // Перенаправляем на защищённую страницу
-        window.location.href = '/tasks.html';
+        // Перенаправляем на стартовую страницу
+        window.location.href = 'index.html';
       } else {
         // Показываем ошибку
         errorMessage.style.display = 'block';
