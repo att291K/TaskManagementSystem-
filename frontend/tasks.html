@@ -215,6 +215,8 @@
 
     const USE_MOCK = true;
     const ASSIGNMENT_API = 'http://localhost:8082';
+    const TASKS_API = 'http://localhost:8081';
+    const AUTH_API = 'http://localhost:8080';
 
     const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "DONE", "BLOCKED"];
 
@@ -292,15 +294,30 @@
     // ------------------ РЕАЛЬНЫЕ API ФУНКЦИИ (TODO включить) ------------------
 
     async function fetchTasks() {
-      return fetchJson("/tasks");
+      return fetchJson(`${TASKS_API}/tasks`);
     }
 
-    async function fetchAssignments() {
-      return fetchJson("/assignments");
+    async function fetchAssignments(taskIds) {
+      const jwt = localStorage.getItem('jwt');
+
+      return fetchJson(`${ASSIGNMENT_API}/assignments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${jwt}` },
+        body: JSON.stringify({ taskIds }),
+      });
     }
 
     async function fetchUsers() {
       return fetchJson("/users");
+    }
+
+    async function getRoles() {
+      const jwt = localStorage.getItem('jwt');
+
+      return fetchJson(`${AUTH_API}/getRoles`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${jwt}` },
+      });
     }
 
     // PATCH /tasks  { id: 5, status: "OPEN" }
@@ -312,11 +329,13 @@
       });
     }
 
-    // POST /assignments  { taskId: 5, employeeId: 10 }
+    // POST /assignment  { taskId: 5, employeeId: 10 }
     async function postAssignment(taskId, employeeId) {
-      return fetchJson(`${ASSIGNMENT_API}/assignments`, {
+      const jwt = localStorage.getItem('jwt');
+
+      return fetchJson(`${ASSIGNMENT_API}/assignment`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${jwt}` },
         body: JSON.stringify({ taskId, employeeId })
       });
     }
@@ -373,7 +392,7 @@
       return map;
     }
 
-    function renderTasks(tasks, assignmentsMap, users) {
+    function renderTasks(tasks, assignmentsMap, users, role) {
       tasksContainer.innerHTML = "";
 
       if (!tasks || tasks.length === 0) {
@@ -420,7 +439,7 @@
 
               <div class="row">
                 <span>Назначенный сотрудник:</span>
-                <select data-action="change-employee" data-task-id="${escapeHtml(id)}">
+                <select ${role !== 'MANAGER' ? 'disabled' : ''} data-action="change-employee" data-task-id="${escapeHtml(id)}">
                   ${employeeOptionsHtml}
                 </select>
               </div>
@@ -456,19 +475,31 @@
 
         if (USE_MOCK) {
           tasks = await fetchTasksMock();
-          assignments = await fetchAssignmentsMock();
           users = await fetchUsersMock();
         } else {
           // TODO: включить реальные запросы
           // [tasks, assignments, users] = await Promise.all([
-          //   fetchTasks(),
-          //   fetchAssignments(),
           //   fetchUsers()
           // ]);
         }
 
+        const taskIds = tasks?.map(task => task.id)
+
+        console.log(taskIds)
+
+        assignments = await fetchAssignments(taskIds)
+
         const assignmentsMap = buildAssignmentsMap(assignments);
-        renderTasks(tasks, assignmentsMap, users);
+
+        let role = ''
+        try {
+            const roles = await getRoles()
+            role = roles[0]
+        } catch(err) {
+            window.location.href = '/custom-login.html';
+        }
+
+        renderTasks(tasks, assignmentsMap, users, role);
 
       } catch (err) {
         showError(err?.message || String(err));

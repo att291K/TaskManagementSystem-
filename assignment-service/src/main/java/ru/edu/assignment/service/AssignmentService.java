@@ -5,6 +5,7 @@ import ru.edu.assignment.repository.AssignmentRepository;
 import ru.edu.assignment.entity.Assignment;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 public class AssignmentService {
@@ -28,5 +29,9 @@ public class AssignmentService {
         kafkaTemplate.send("task.events", event);
 
         return savedAssignment;
+    }
+
+    public List<Assignment> getAssignments(List<String> taskIds) {
+        return repository.findAllByTaskIdsDesc(taskIds);
     }
 }
