@@ -150,7 +150,8 @@ async function getRoles() {
 
 async function patchTaskStatus(taskId, status) {
     const jwt = localStorage.getItem('jwt');
-    return fetchJson(`${TASKS_API}/tasks`, {
+    return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
+
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -181,7 +182,8 @@ async function postAssignment(taskId, employeeId) {
 // }
 async function createTask(payload) {
     const jwt = localStorage.getItem('jwt');
-    return fetchJson(`${TASKS_API}/tasks`, {
+    return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
+
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -228,9 +230,17 @@ async function createTaskMock(payload) {
 
 function buildAssignmentsMap(assignments) {
     const map = new Map();
-    for (const a of assignments ) // || []
-    {
-        if (a.taskId != null) map.set(String(a.taskId), a.employeeId);
+
+    // Если assignments не массив (null/undefined/не итерируемый), возвращаем пустую карту
+    if (!assignments || !Array.isArray(assignments)) {
+        console.warn("Assignments is not an array:", assignments);
+        return map;
+    }
+
+    for (const a of assignments) {
+        if (a && a.taskId != null) {
+            map.set(String(a.taskId), a.employeeId);
+        }
     }
     return map;
 }
@@ -313,7 +323,7 @@ async function loadData() {
     modeStatus.textContent = USE_MOCK ? "Мок-режим" : "API-режим";
     setLoading(true, USE_MOCK ? "Загрузка (моковые данные)..." : "Загрузка...");
 
-    /*try{
+    try{
             const token = localStorage.getItem('jwt');
             if (!token) {
                 window.location.href = NGINX + '/custom-login.html';
@@ -321,7 +331,7 @@ async function loadData() {
     }
     catch (err) {
         showError(err?.message || String(err));
-    }*/
+    }
 
     try {
         let tasks, assignments, users;

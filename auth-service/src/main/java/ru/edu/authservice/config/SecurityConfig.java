@@ -1,5 +1,14 @@
 package ru.edu.authservice.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.Ordered;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import ru.edu.authservice.filters.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,26 +25,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+//@CrossOrigin(origins = "http://localhost:8084", allowCredentials = "true") // ДОБАВИТЬ ЭТО
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http){
-        http
-                .csrf(AbstractHttpConfigurer::disable) // Отключаем CSRF, если используем JWT
-                .cors(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/custom-login", "/login", "/getRoles", "/css/**", "/js/**").permitAll()  // Разрешаем доступ к /login
-                        .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -51,4 +49,86 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
          }
+
+
+    /*@Bean
+    public SecurityFilterChain filterChain(HttpSecurity http){
+       http
+               .csrf(AbstractHttpConfigurer::disable) // Отключаем CSRF, если используем JWT
+               .cors(AbstractHttpConfigurer::disable)
+               .authorizeHttpRequests(authz -> authz
+                       .requestMatchers("/custom-login", "/login", "/getRoles", "/css/**", "/js/**").permitAll()  // Разрешаем доступ к /login
+                       .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации
+               )
+               .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+       return http.build();
+    }*/
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                // 1. ОТКЛЮЧАЕМ сессии (Stateful -> Stateless)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+
+                /*.authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // РАЗРЕШИТЬ ВСЁ ДЛЯ ТЕСТА
+                )*/
+
+                .authorizeHttpRequests(authz -> authz
+                        // 2. Разрешаем OPTIONS для всех без исключения
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        // 3. Разрешаем пути (проверьте, что в контроллере именно этот путь!)
+                        .requestMatchers("/api/auth/login", "/login", "/custom-login", "/getRoles", "/css/**", "/js/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        })
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Используйте "*" для теста, чтобы проверить, появятся ли заголовки вообще
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    /*@Bean
+    public FilterRegistrationBean<CorsFilter> corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        // Важно: укажите оба варианта localhost
+        config.setAllowedOrigins(List.of("http://localhost:8084", "http://127.0.0.1:8084"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedMethods(List.of("*"));
+        source.registerCorsConfiguration("/**", config);
+
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        // Устанавливаем самый высокий приоритет, чтобы CORS срабатывал ДО Security
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
+    }*/
 }

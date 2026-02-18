@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.edu.taskmanagementsystem.dto.TaskDtoRequest;
 import ru.edu.taskmanagementsystem.dto.TaskDtoResponse;
@@ -18,7 +19,7 @@ import java.util.Objects;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 
 
-@RestController
+@Controller
 @RequestMapping("/tasks")
 @AllArgsConstructor
 public class TaskController {
@@ -28,8 +29,8 @@ public class TaskController {
 
     @GetMapping("/getAllTasks")
     public ResponseEntity<@NonNull List<TaskDtoResponse>> getAllTasks() {
-        User principal = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        System.out.println(principal);
+        //User principal = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        //System.out.println(principal);
         return ResponseEntity.ok(taskMapper.toDto(taskService.findAll()));
     }
 

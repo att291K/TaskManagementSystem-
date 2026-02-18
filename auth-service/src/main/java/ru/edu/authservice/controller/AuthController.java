@@ -1,5 +1,6 @@
 package ru.edu.authservice.controller;
 
+import org.springframework.web.bind.annotation.RestController;
 import ru.edu.authservice.dto.AuthRequestDto;
 import ru.edu.authservice.dto.AuthResponseDto;
 import ru.edu.authservice.model.User;
@@ -14,13 +15,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.edu.authservice.service.JwtUtils;
 
-@Controller
+@RestController
 @AllArgsConstructor
 public class AuthController {
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/login")
+    @PostMapping("/api/auth/login")
     public ResponseEntity<@NonNull AuthResponseDto> login(@RequestBody @NonNull AuthRequestDto authRequestDto) {
         String username = authRequestDto.getUsername();
         String password = authRequestDto.getPassword();
