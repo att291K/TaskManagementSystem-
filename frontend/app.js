@@ -73,15 +73,14 @@ function renderEvent(event) {
     `;
 }
 
-// ... существующий код ...
-
+// Загрузка событий с использованием apiFetch
 async function loadEvents() {
     try {
         loading.style.display = 'block';
         errorDiv.style.display = 'none';
 
         // Загрузка статистики
-        const statsResponse = await fetch(`${API_BASE_URL}/events/stats`);
+        const statsResponse = await window.apiFetch(`${API_BASE_URL}/events/stats`);
         const statsData = await statsResponse.json();
 
         if (statsData.status === "success" && statsData.data) {
@@ -94,7 +93,7 @@ async function loadEvents() {
         }
 
         // Загрузка последних событий
-        const eventsResponse = await fetch(`${API_BASE_URL}/events/recent?limit=${pageSize}`);
+        const eventsResponse = await window.apiFetch(`${API_BASE_URL}/events/recent?limit=${pageSize}`);
         const eventsData = await eventsResponse.json();
 
         let events = [];
@@ -117,14 +116,15 @@ async function loadEvents() {
 
     } catch (err) {
         console.error('Ошибка соединения:', err);
-        errorDiv.style.display = 'block';
-        errorDiv.textContent = `Ошибка соединения: ${err.message}`;
+        // Не показываем ошибку если это редирект из-за 401
+        if (err.message !== 'Сессия истекла' && err.message !== 'Нет токена авторизации') {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = `Ошибка соединения: ${err.message}`;
+        }
     } finally {
         loading.style.display = 'none';
     }
 }
-
-// ... остальной код ...
 
 // Очистка фильтров
 function clearEvents() {
@@ -132,14 +132,11 @@ function clearEvents() {
     loadEvents();
 }
 
-// Создание тестового события
+// Создание тестового события с использованием apiFetch
 async function createTestEvent() {
     try {
-        const response = await fetch(`${API_BASE_URL}/events/test`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+        const response = await window.apiFetch(`${API_BASE_URL}/events/test`, {
+            method: 'POST'
         });
 
         if (response.ok) {
@@ -159,23 +156,19 @@ function startAutoRefresh() {
 
     autoRefreshInterval = setInterval(() => {
         loadEvents();
-    }, 10000); // Каждые 10 секунд
+    }, 10000);
 
     console.log('Автообновление запущено');
 }
 
 // Инициализация приложения
 function init() {
-    // Загружаем события при загрузке страницы
+    // Проверка авторизации уже выполнена в HTML скрипте
+    // Просто загружаем события
     loadEvents();
-
-    // Запускаем автообновление
     startAutoRefresh();
 
-    // Добавляем кнопку тестирования в консоль для разработчиков
-    console.log('Для создания тестового события выполните: createTestEvent()');
-
-    // Экспортируем функции в глобальную область видимости
+    // Экспортируем функции
     window.createTestEvent = createTestEvent;
     window.loadEvents = loadEvents;
     window.clearEvents = clearEvents;
@@ -190,9 +183,13 @@ document.addEventListener('visibilitychange', function() {
         if (autoRefreshInterval) {
             clearInterval(autoRefreshInterval);
             autoRefreshInterval = null;
-            console.log('Автообновление приостановлено');
         }
     } else {
-        startAutoRefresh();
+        // При возвращении проверяем авторизацию через проверку токена
+        const token = localStorage.getItem('jwt');
+        if (token) {
+            startAutoRefresh();
+            loadEvents(); // Перезагружаем данные
+        }
     }
 });
