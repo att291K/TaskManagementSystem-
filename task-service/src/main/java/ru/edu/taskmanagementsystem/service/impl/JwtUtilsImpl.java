@@ -36,5 +36,13 @@ public class JwtUtilsImpl implements JwtUtils {
                 .getSubject();
     }
 
+    @Override
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+                .build()
+                .parseSignedClaims(token) // Используйте parseSignedClaims для новых версий jjwt
+                .getPayload();
+    }
 
 }

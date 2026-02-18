@@ -30,22 +30,30 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+        if (request.getMethod().equals("OPTIONS")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         Enumeration<String> headers = request.getHeaderNames();
         String authorization = request.getHeader("Authorization");
 
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
             String username = jwtUtils.extractUsername(token);
-            User user = userRepository.findByUsername(username).orElse(null);
+            //User user = userRepository.findByUsername(username).orElse(null);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                userRepository.findByUsername(username).ifPresent(user -> {
                     UsernamePasswordAuthenticationToken authenticationToken =
                             new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     log.debug("Аутентификация установлена для пользователя: {}", username);
+                });
             }
         }
+
 
         filterChain.doFilter(request, response);
     }

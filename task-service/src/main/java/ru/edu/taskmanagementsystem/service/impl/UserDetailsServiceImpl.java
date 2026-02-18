@@ -36,10 +36,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public void fillDatabase() {
         try {
             User user = new User();
-            user.setUsername("admin");
-            user.setPassword(passwordEncoder.encode("admin"));
+            user.setUsername("testUser");
+            user.setPassword(passwordEncoder.encode("testPassword"));
             var role = new HashSet<String>();
             role.add("MANAGER");
+            user.setRoles(role);
+            userRepository.save(user);
+        }
+        catch (Exception ignored) {}
+        try {
+            User user = new User();
+            user.setUsername("testUser2");
+            user.setPassword(passwordEncoder.encode("testUser2"));
+            var role = new HashSet<String>();
+            role.add("EMPLOYEE");
             user.setRoles(role);
             userRepository.save(user);
         }

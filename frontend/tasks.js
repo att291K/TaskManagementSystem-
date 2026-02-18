@@ -133,9 +133,13 @@ async function getRoles() {
 
 // PATCH /tasks  { id: 5, status: "OPEN" }
 async function patchTaskStatus(taskId, status) {
-    return fetchJson(`/tasks`, {
+    const jwt = localStorage.getItem('jwt');
+    return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${jwt}`
+        },
         body: JSON.stringify({ id: taskId, status })
     });
 }
@@ -153,9 +157,13 @@ async function postAssignment(taskId, employeeId) {
 
 // POST /tasks  { title, description, status }
 async function createTask(payload) {
-    return fetchJson(`/tasks`, {
+    const jwt = localStorage.getItem('jwt');
+    return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${jwt}`
+        },
         body: JSON.stringify(payload)
     });
 }
@@ -197,9 +205,17 @@ async function createTaskMock(payload) {
 
 function buildAssignmentsMap(assignments) {
     const map = new Map();
-    for (const a of assignments ) // || []
-    {
-        if (a.taskId != null) map.set(String(a.taskId), a.employeeId);
+
+    // Если assignments не массив (null/undefined/не итерируемый), возвращаем пустую карту
+    if (!assignments || !Array.isArray(assignments)) {
+        console.warn("Assignments is not an array:", assignments);
+        return map;
+    }
+
+    for (const a of assignments) {
+        if (a && a.taskId != null) {
+            map.set(String(a.taskId), a.employeeId);
+        }
     }
     return map;
 }
@@ -282,7 +298,7 @@ async function loadData() {
     modeStatus.textContent = USE_MOCK ? "Мок-режим" : "API-режим";
     setLoading(true, USE_MOCK ? "Загрузка (моковые данные)..." : "Загрузка...");
 
-    /*try{
+    try{
             const token = localStorage.getItem('jwt');
             if (!token) {
                 window.location.href = NGINX + '/custom-login.html';
@@ -290,7 +306,7 @@ async function loadData() {
     }
     catch (err) {
         showError(err?.message || String(err));
-    }*/
+    }
 
     try {
         let tasks, assignments, users;
