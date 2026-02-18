@@ -12,7 +12,6 @@ import ru.edu.taskmanagementsystem.model.TaskM;
 import ru.edu.taskmanagementsystem.model.User;
 import ru.edu.taskmanagementsystem.service.TaskService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,29 +27,29 @@ public class TaskController {
     private final TaskMapper taskMapper;
 
     @GetMapping("/getAllTasks")
-    public ResponseEntity<@NonNull List<TaskDtoResponse>> getAllEvents() {
+    public ResponseEntity<@NonNull List<TaskDtoResponse>> getAllTasks() {
         User principal = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         System.out.println(principal);
         return ResponseEntity.ok(taskMapper.toDto(taskService.findAll()));
     }
 
     @PostMapping("/createTask")
-    public TaskM assign(@RequestBody TaskDtoRequest taskRequest) {
+    public TaskM createTask(@RequestBody TaskDtoRequest taskRequest) {
         return taskService.createTask(taskMapper.toTask(taskRequest));
     }
 
     @GetMapping("/getTaskById/{id}")
-    public ResponseEntity<@NonNull TaskDtoResponse> getEventById(@PathVariable Long id) {
+    public ResponseEntity<@NonNull TaskDtoResponse> getTaskById(@PathVariable Long id) {
         return ResponseEntity.ok(taskMapper.toDto(taskService.findById(id)));
     }
 
     @DeleteMapping("/deleteTaskById/{id}")
-    public void deleteEventById(@PathVariable Long id) {
+    public void deleteTaskById(@PathVariable Long id) {
         taskService.deleteById(id);
     }
 
     @DeleteMapping("/deleteAllTasks")
-    public void deleteAllEvents() {
+    public void deleteAllTasks() {
         taskService.deleteAll();
     }
 

@@ -13,7 +13,6 @@ import ru.edu.taskmanagementsystem.model.User;
 import ru.edu.taskmanagementsystem.repository.UserRepository;
 
 import java.util.HashSet;
-import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +26,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found " + username));
+    }
+
+    public Iterable<User> findAll() {
+        return userRepository.findAll();
     }
 
     @PostConstruct
@@ -68,10 +71,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userRepository.deleteAll();
     }
 
-    @Override
-    public Iterable<User> findAll() {
-        return userRepository.findAll();
-    }
+
 
     @Override
     public boolean existsById(Long id) {
