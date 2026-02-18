@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashSet;
 
 @Service
 @AllArgsConstructor
@@ -26,11 +27,38 @@ public class UserDetailServiceImpl implements UserDetailsService {
     }
 
     @PostConstruct
-    public void findDatabase() {
+    public void fillDatabase() {
         User user = new User();
         user.setUsername("testUser");
         user.setPassword(passwordEncoder.encode("testPassword"));
         user.setRoles(Collections.singleton("MANAGER"));
         userRepository.save(user);
+
+        try {
+            user = new User();
+            user.setUsername("Petrov");
+            user.setPassword(passwordEncoder.encode("Petrov"));
+            user.setRoles(Collections.singleton("EMPLOYEE"));
+            userRepository.save(user);
+        }
+        catch (Exception ignored) {}
+
+        try {
+            user = new User();
+            user.setUsername("Ivanov");
+            user.setPassword(passwordEncoder.encode("Petrov"));
+            user.setRoles(Collections.singleton("EMPLOYEE"));
+            userRepository.save(user);
+        }
+        catch (Exception ignored) {}
+
+        try {
+            user = new User();
+            user.setUsername("Sidorov");
+            user.setPassword(passwordEncoder.encode("Petrov"));
+            user.setRoles(Collections.singleton("EMPLOYEE"));
+            userRepository.save(user);
+        }
+        catch (Exception ignored) {}
     }
 }

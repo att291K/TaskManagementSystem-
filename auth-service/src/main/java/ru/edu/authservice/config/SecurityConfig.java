@@ -1,14 +1,11 @@
 package ru.edu.authservice.config;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.core.Ordered;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 import ru.edu.authservice.filters.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +28,6 @@ import java.util.Map;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-//@CrossOrigin(origins = "http://localhost:8084", allowCredentials = "true") // ДОБАВИТЬ ЭТО
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
@@ -84,7 +80,13 @@ public class SecurityConfig {
                         // 2. Разрешаем OPTIONS для всех без исключения
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         // 3. Разрешаем пути (проверьте, что в контроллере именно этот путь!)
-                        .requestMatchers("/api/auth/login", "/login", "/custom-login", "/getRoles", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/api/auth/login",
+                                "/login",
+                                "/custom-login",
+                                "/getRoles",
+                                "/users",
+                                "/css/**",
+                                "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
@@ -115,20 +117,9 @@ public class SecurityConfig {
         return source;
     }
 
-    /*@Bean
-    public FilterRegistrationBean<CorsFilter> corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        // Важно: укажите оба варианта localhost
-        config.setAllowedOrigins(List.of("http://localhost:8084", "http://127.0.0.1:8084"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowedMethods(List.of("*"));
-        source.registerCorsConfiguration("/**", config);
-
-        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-        // Устанавливаем самый высокий приоритет, чтобы CORS срабатывал ДО Security
-        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        return bean;
-    }*/
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers("/users", "/api/auth/login", "/css/**", "/js/**");
+    }
 }

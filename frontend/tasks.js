@@ -21,7 +21,6 @@ const NGINX = 'http://localhost:8084';
 
 const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "DONE", "BLOCKED"];
 
-const jwt = localStorage.getItem('jwt');
 
 // ------------------ МОКОВЫЕ ДАННЫЕ ------------------
 let mockTasks = [
@@ -119,15 +118,26 @@ async function fetchAssignments(taskIds) {
 }
 
 async function fetchUsers() {
-    const jwt = localStorage.getItem('jwt');
-    return fetchJson(`${AUTH_API}/users`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${jwt}`
-        }
-    });
-    //return mockUsers; //fetchJson("/users");
+    const token = localStorage.getItem('jwt');
+
+    // Если токен есть, идем в API, если нет — на логин
+    if (!token) {
+        window.location.href = '/login.html';
+        return [];
+    }
+
+    try {
+        const users = await fetchJson(`${AUTH_API}/users`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        return users || [];
+    } catch (e) {
+        console.error("Не удалось загрузить пользователей:", e);
+        return [];
+    }
 }
 
 async function getRoles() {
@@ -231,13 +241,13 @@ async function createTaskMock(payload) {
 function buildAssignmentsMap(assignments) {
     const map = new Map();
 
-    // Если assignments не массив (null/undefined/не итерируемый), возвращаем пустую карту
-    if (!assignments || !Array.isArray(assignments)) {
-        console.warn("Assignments is not an array:", assignments);
-        return map;
-    }
+    if (!assignments) return map;
 
-    for (const a of assignments) {
+    // Если пришел один объект, упаковываем его в массив [assignments]
+    const data = Array.isArray(assignments) ? assignments : [assignments];
+
+    for (const a of data) {
+        // Добавляем проверку на существование а
         if (a && a.taskId != null) {
             map.set(String(a.taskId), a.employeeId);
         }
@@ -270,11 +280,11 @@ function renderTasks(tasks, assignmentsMap, users, role) {
         const employeeOptionsHtml = `
           <option value="">Не назначен</option>
           ${(users || []).map(u => `
-            <option value="${u.id}" ${u.id === currentEmployeeId ? "selected" : ""}>
-              ${escapeHtml(u.name ?? ("User #" + u.id))}
-            </option>
-          `).join("")}
-        `;
+              <option value="${u.id}">
+                ${escapeHtml(u.username ?? ("User #" + u.id))}
+              </option>
+            `)}
+        `;//.join("")
 
         return `
           <div class="card">
