@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.Instant;
 
 // Простая DTO для событий из Kafka
+
 public record TaskEvent(
         String eventType,
         Long taskId,
