@@ -1,6 +1,5 @@
 package ru.edu.taskmanagementsystem.mapper;
 
-import jdk.jshell.Snippet;
 import org.springframework.stereotype.Component;
 import ru.edu.taskmanagementsystem.dto.TaskDtoRequest;
 import ru.edu.taskmanagementsystem.dto.TaskDtoResponse;
@@ -28,7 +27,17 @@ public class TaskMapper {
         TaskM task = new TaskM();
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
-        task.setStatus(Snippet.Status.valueOf(Status.class, request.getStatus()));
+
+        if (request.getStatus() != null) {
+            try {
+                task.setStatus(Status.valueOf(request.getStatus().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                task.setStatus(Status.OPEN);
+            }
+        } else {
+            task.setStatus(Status.OPEN);
+        }
+
         return task;
     }
 
