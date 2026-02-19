@@ -28,11 +28,24 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @PostConstruct
     public void fillDatabase() {
-        User user = new User();
-        user.setUsername("testUser");
-        user.setPassword(passwordEncoder.encode("testPassword"));
-        user.setRoles(Collections.singleton("MANAGER"));
-        userRepository.save(user);
+        User user;
+        try {
+            user = new User();
+            user.setUsername("testUser");
+            user.setPassword(passwordEncoder.encode("testPassword"));
+            user.setRoles(Collections.singleton("MANAGER"));
+            userRepository.save(user);
+        }
+        catch (Exception ignored) {}
+
+        try {
+            user = new User();
+            user.setUsername("Smith");
+            user.setPassword(passwordEncoder.encode("Smith"));
+            user.setRoles(Collections.singleton("MANAGER"));
+            userRepository.save(user);
+        }
+        catch (Exception ignored) {}
 
         try {
             user = new User();

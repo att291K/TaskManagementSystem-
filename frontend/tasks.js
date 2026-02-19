@@ -12,6 +12,7 @@ const clearFormBtn = document.getElementById("clearFormBtn");
 
 const loadingOverlay = document.getElementById("loadingOverlay");
 const loadingOverlayText = document.getElementById("loadingOverlayText");
+const loadingTextTask = document.getElementById("loadingTextTask");
 
 const USE_MOCK = false;
 const ASSIGNMENT_API = 'http://localhost:8082';
@@ -52,9 +53,11 @@ function setLoading(isLoading, text = "") {
     if (isLoading) {
         loadingOverlay.style.display = "flex";
         loadingOverlayText.textContent = text || "Загрузка...";
+        loadingTextTask.textContent = text || "Загрузка...";
     } else {
         loadingOverlay.style.display = "none";
         loadingOverlayText.textContent = "";
+        loadingTextTask.textContent = "";
     }
 }
 
@@ -93,7 +96,7 @@ async function fetchJson(url, options = {}) {
     return null;
 }
 
-// ------------------ РЕАЛЬНЫЕ API ФУНКЦИИ (TODO включить) ------------------
+// ------------------ РЕАЛЬНЫЕ API ФУНКЦИИ  ------------------
 
 async function fetchTasks() {
     const jwt = localStorage.getItem('jwt');
@@ -270,7 +273,6 @@ function renderTasks(tasks, assignmentsMap, users, role) {
 
         const currentEmployeeId = assignmentsMap.get(String(id)) ?? null;
 
-        // Исправлено: добавлена логика выбора текущего сотрудника (selected)
         const employeeOptionsHtml = `
           <option value="">Не назначен</option>
           ${(users || []).map(u => `
@@ -280,7 +282,6 @@ function renderTasks(tasks, assignmentsMap, users, role) {
             `).join("")}
         `;
 
-        // Исправлено: перенесено выше return, чтобы переменная была доступна
         const statusOptionsHtml = STATUS_OPTIONS.map(s => `
           <option value="${escapeHtml(s)}" ${s === status ? "selected" : ""}>
             ${escapeHtml(s)}
@@ -290,7 +291,6 @@ function renderTasks(tasks, assignmentsMap, users, role) {
         return `
           <div class="card">
             <h2 class="task-title">${escapeHtml(title)}</h2>
-            <p class="task-desc">${escapeHtml(description)}</p>
 
             <div class="task-meta">
               <div class="row">
@@ -300,12 +300,17 @@ function renderTasks(tasks, assignmentsMap, users, role) {
                 </select>
               </div>
 
-              <div class="row">
-                <span>Назначенный сотрудник:</span>
-                <select ${role !== 'MANAGER' ? 'disabled' : ''} data-action="change-employee" data-task-id="${escapeHtml(id)}">
-                  ${employeeOptionsHtml}
-                </select>
-              </div>
+                 <div class="row">
+                    <span>Назначенный сотрудник:</span>
+                    <select ${role !== 'MANAGER' ? 'disabled' : ''} data-action="change-employee" data-task-id="${escapeHtml(id)}">
+                      ${employeeOptionsHtml}
+                    </select>
+                 </div>
+              
+                <div class="row">
+                    <span class="label">Описание:</span>
+                    <div class="task-desc">${escapeHtml(description || "Описание отсутствует")}</div>
+                </div>
             </div>
           </div>
         `;
