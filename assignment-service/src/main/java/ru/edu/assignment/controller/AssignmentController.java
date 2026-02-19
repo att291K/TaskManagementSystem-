@@ -14,7 +14,6 @@ import java.net.URL;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/assignment")
 public class AssignmentController {
     private final AssignmentService service;
 
@@ -23,6 +22,7 @@ public class AssignmentController {
     }
 
     @PostMapping
+    @RequestMapping("/assignment")
     public ResponseEntity<Assignment> assign(@NonNull HttpServletRequest request, @RequestBody AssignmentRequestDto assignmentRequest) throws IOException {
         String authorization = request.getHeader("Authorization");
 

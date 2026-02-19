@@ -1,19 +1,17 @@
 package ru.edu.taskmanagementsystem.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskDtoRequest {
-
-    @NonNull
-    private String id;
-    @NonNull
+    private Long id;
     private String title;
-    @NonNull
     private String description;
-    @NonNull
     private String status;
-    @NonNull
     private String dateTime;
 }

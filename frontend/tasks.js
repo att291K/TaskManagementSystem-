@@ -149,25 +149,23 @@ async function getRoles() {
     });
 }
 
-// PATCH /tasks  { id: 5, status: "OPEN" }
-// async function patchTaskStatus(taskId, status) {
-//     return fetchJson(`/tasks`, {
-//         method: "PATCH",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ id: taskId, status })
-//     });
-// }
-
 async function patchTaskStatus(taskId, status) {
     const jwt = localStorage.getItem('jwt');
-    return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
+    const id = Number(taskId); // Убеждаемся, что это число
 
+    return fetchJson(`${TASKS_API}/tasks/updateTask/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${jwt}`
         },
-        body: JSON.stringify({ id: taskId, status })
+        // Передаем все поля, которые есть в DTO, чтобы избежать ошибок маппинга
+        body: JSON.stringify({
+            id: id,
+            status: String(status).toUpperCase(),
+            title: "", // Пустые строки, чтобы не было null
+            description: ""
+        })
     });
 }
 
@@ -192,8 +190,7 @@ async function postAssignment(taskId, employeeId) {
 // }
 async function createTask(payload) {
     const jwt = localStorage.getItem('jwt');
-    return fetchJson(`${TASKS_API}/tasks`, { // Добавлен URL и JWT
-
+    return fetchJson(`${TASKS_API}/tasks/createTask`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -255,6 +252,8 @@ function buildAssignmentsMap(assignments) {
     return map;
 }
 
+// ------------------ UI / ЛОГИКА ------------------
+
 function renderTasks(tasks, assignmentsMap, users, role) {
     tasksContainer.innerHTML = "";
 
@@ -271,25 +270,26 @@ function renderTasks(tasks, assignmentsMap, users, role) {
 
         const currentEmployeeId = assignmentsMap.get(String(id)) ?? null;
 
+        // Исправлено: добавлена логика выбора текущего сотрудника (selected)
+        const employeeOptionsHtml = `
+          <option value="">Не назначен</option>
+          ${(users || []).map(u => `
+              <option value="${u.id}" ${Number(u.id) === Number(currentEmployeeId) ? "selected" : ""}>
+                ${escapeHtml(u.username ?? ("User #" + u.id))}
+              </option>
+            `).join("")}
+        `;
+
+        // Исправлено: перенесено выше return, чтобы переменная была доступна
         const statusOptionsHtml = STATUS_OPTIONS.map(s => `
           <option value="${escapeHtml(s)}" ${s === status ? "selected" : ""}>
             ${escapeHtml(s)}
           </option>
         `).join("");
 
-        const employeeOptionsHtml = `
-          <option value="">Не назначен</option>
-          ${(users || []).map(u => `
-              <option value="${u.id}">
-                ${escapeHtml(u.username ?? ("User #" + u.id))}
-              </option>
-            `)}
-        `;//.join("")
-
         return `
           <div class="card">
             <h2 class="task-title">${escapeHtml(title)}</h2>
-
             <p class="task-desc">${escapeHtml(description)}</p>
 
             <div class="task-meta">
@@ -333,138 +333,103 @@ async function loadData() {
     modeStatus.textContent = USE_MOCK ? "Мок-режим" : "API-режим";
     setLoading(true, USE_MOCK ? "Загрузка (моковые данные)..." : "Загрузка...");
 
-    try{
-            const token = localStorage.getItem('jwt');
-            if (!token) {
-                window.location.href = NGINX + '/custom-login.html';
-            }
-    }
-    catch (err) {
-        showError(err?.message || String(err));
-    }
-
     try {
-        let tasks, assignments, users;
+        const token = localStorage.getItem('jwt');
+        if (!token) {
+            window.location.href = '/custom-login.html';
+            return;
+        }
+
+        let tasks, assignments, users, role = '';
 
         if (USE_MOCK) {
             tasks = await fetchTasksMock();
             users = await fetchUsersMock();
+            assignments = await fetchAssignmentsMock();
+            role = 'MANAGER';
         } else {
-            // TODO: включить реальные запросы
-            /*[tasks, assignments, users] = await Promise.all([
-                fetchUsers()
-            ]);*/
+            // 1. Загружаем задачи и пользователей
             tasks = await fetchTasks();
             users = await fetchUsers();
-        }
 
-        //const taskIds = tasks?.map(task => task.id)
-        const taskIds = Array.isArray(tasks) ? tasks.map(t => t.id) : [];
+            // 2. Исправлено: используем переменную tasks вместо несуществующей allTasks
+            const currentTasks = Array.isArray(tasks) ? tasks : [];
+            const taskIdsNumber = currentTasks.map(t => Number(t.id));
 
-
-        console.log(taskIds)
-
-        assignments = await fetchAssignments(taskIds)
-
-        const assignmentsMap = buildAssignmentsMap(assignments);
-
-        let role = ''
-        try {
-            const roles = await getRoles()
-            role = roles[0]
-        } catch(err) {
-            //window.location.href = '/custom-login.html';
-            if (err.message.includes("401") || err.message.includes("403")) {
-                window.location.href = '/custom-login.html';
+            // 3. Загружаем назначения
+            if (taskIdsNumber.length > 0) {
+                assignments = await fetchAssignments(taskIdsNumber);
             } else {
-                showError("Ошибка загрузки ролей: " + err.message);
+                assignments = [];
+            }
+
+            // 4. Загружаем роли
+            try {
+                const roles = await getRoles();
+                // Если пришел массив ["MANAGER"], берем первый элемент
+                role = Array.isArray(roles) ? roles[0] : roles;
+            } catch(err) {
+                console.warn("Ошибка ролей:", err);
             }
         }
 
+        const assignmentsMap = buildAssignmentsMap(assignments);
         renderTasks(tasks, assignmentsMap, users, role);
 
     } catch (err) {
         showError(err?.message || String(err));
+        if (err.message.includes("401")) {
+            window.location.href = '/custom-login.html';
+        }
     } finally {
-        setLoading(false, USE_MOCK ? "Мок-режим (TODO подключить API)" : "Готово");
+        setLoading(false);
     }
 }
 
-// Изменения в тасках (статус/назначение)
+// Обработка кликов и изменений
 tasksContainer.addEventListener("change", async (e) => {
     const target = e.target;
-    if (!(target instanceof HTMLSelectElement)) return;
-
     const action = target.dataset.action;
     const taskId = Number(target.dataset.taskId);
+
     if (!action || !taskId) return;
 
     try {
         setLoading(true, "Сохранение...");
-
         if (action === "change-status") {
-            const newStatusValue = target.value;
-
-            if (USE_MOCK) {
-                await patchTaskStatusMock(taskId, newStatusValue);
-            } else {
-                // TODO: включить реальный запрос
-                // await patchTaskStatus(taskId, newStatusValue);
-            }
+            await patchTaskStatus(taskId, target.value);
         }
-
         if (action === "change-employee") {
-            const raw = target.value;
-            const employeeId = raw === "" ? null : Number(raw);
-
+            const employeeId = target.value === "" ? null : Number(target.value);
             await postAssignment(taskId, employeeId);
         }
-
-// TODO: turn on when all will be ready
-    await loadData();
+        await loadData();
     } catch (err) {
-        showError(err?.message || String(err));
+        showError("Ошибка сохранения: " + err.message);
     } finally {
-        setLoading(false, USE_MOCK ? "Мок-режим (TODO подключить API)" : "Готово");
+        setLoading(false);
     }
 });
 
-// Создание таски
 createTaskBtn.addEventListener("click", async () => {
-    clearError();
-
     const title = newTitle.value.trim();
-    const description = newDescription.value.trim();
-    const status = newStatus.value;
-
-    if (!title) {
-        showError("Название (title) обязательно для заполнения");
-        return;
-    }
+    if (!title) return showError("Введите название");
 
     try {
-        setLoading(true, "Создание задачи...");
-
-        const payload = { title, description, status };
-
-        if (USE_MOCK) {
-            await createTaskMock(payload);
-        } else {
-            // TODO: включить реальный запрос
-            // await createTask(payload);
-        }
-
+        setLoading(true, "Создание...");
+        await createTask({ title, description: newDescription.value, status: newStatus.value });
         clearCreateForm();
         await loadData();
     } catch (err) {
-        showError(err?.message || String(err));
+        showError(err.message);
     } finally {
-        setLoading(false, USE_MOCK ? "Мок-режим (TODO подключить API)" : "Готово");
+        setLoading(false);
     }
 });
 
 clearFormBtn.addEventListener("click", clearCreateForm);
 reloadBtn.addEventListener("click", loadData);
 
+// Старт
 initCreateForm();
 loadData();

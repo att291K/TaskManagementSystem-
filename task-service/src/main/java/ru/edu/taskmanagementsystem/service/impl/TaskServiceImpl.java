@@ -2,17 +2,16 @@ package ru.edu.taskmanagementsystem.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.edu.taskmanagementsystem.aop.annotations.Audited;
-import ru.edu.taskmanagementsystem.model.User;
 import ru.edu.taskmanagementsystem.model.enums.Status;
 import ru.edu.taskmanagementsystem.model.TaskM;
 import ru.edu.taskmanagementsystem.repository.TaskRepository;
 import ru.edu.taskmanagementsystem.service.TaskService;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 
 @Service
 @AllArgsConstructor
@@ -33,6 +32,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskM createTask(TaskM task) {
+        return taskRepository.save(task);
+    }
+
+    @Override
+    public @Nullable TaskM updateTask(TaskM task) {
         return taskRepository.save(task);
     }
 
@@ -66,10 +70,10 @@ public class TaskServiceImpl implements TaskService {
     public void fillDatabase() {
         try {
             TaskM task = new TaskM();
-            task.setTitle("task description 1");
+            task.setTitle("task description 2");
             task.setDescription("");
             task.setDateOfCreate(LocalDateTime.now());
-            task.setStatus(Status.Created);
+            task.setStatus(Status.OPEN);
             taskRepository.save(task);
         }
         catch (Exception ignored) {}

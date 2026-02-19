@@ -15,9 +15,9 @@ public class TaskM {
     private long id;
     @Column(unique = true, name = "title_of_task", nullable = false)
     private String title;
-    @Column(name = "description_of_event", nullable = false)
+    @Column(name = "description_of_task", nullable = false)
     private String description;
-    @Column(name = "status_of_event", nullable = false)
+    @Column(name = "status_of_task", nullable = false)
     private Status status;
     private LocalDateTime dateOfCreate;
     /*@ManyToOne (fetch = FetchType.LAZY)

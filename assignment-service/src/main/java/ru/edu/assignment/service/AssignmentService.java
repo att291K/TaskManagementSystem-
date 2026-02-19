@@ -1,5 +1,6 @@
 package ru.edu.assignment.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.edu.assignment.dto.AssignmentEvent;
 import ru.edu.assignment.repository.AssignmentRepository;
 import ru.edu.assignment.entity.Assignment;
@@ -18,6 +19,7 @@ public class AssignmentService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    @Transactional
     public Assignment createAssignment(Assignment assignment) {
         Assignment savedAssignment = repository.save(assignment);
 
@@ -31,7 +33,8 @@ public class AssignmentService {
         return savedAssignment;
     }
 
-    public List<Assignment> getAssignments(List<String> taskIds) {
-        return repository.findAllByTaskIdsDesc(taskIds);
+    public List<Assignment> getAssignments(List<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) return List.of();
+        return repository.findAllByTaskIdIn(taskIds);
     }
 }

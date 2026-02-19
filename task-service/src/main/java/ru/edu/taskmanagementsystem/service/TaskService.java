@@ -1,5 +1,6 @@
 package ru.edu.taskmanagementsystem.service;
 
+import org.jspecify.annotations.Nullable;
 import ru.edu.taskmanagementsystem.model.TaskM;
 
 
@@ -21,4 +22,6 @@ public interface TaskService {
     boolean existsById(Long id);
 
     TaskM createTask(TaskM task);
+
+    @Nullable TaskM updateTask(TaskM task);
 }

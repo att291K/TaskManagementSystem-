@@ -3,8 +3,7 @@ package ru.edu.assignment.dto;
 import java.util.List;
 
 public class AssignmentsRequestDto {
-    private List<String> taskIds;
-
-    public List<String> getTaskIds() { return taskIds; }
-    public void setTaskIds(List<String> taskIds) { this.taskIds = taskIds; }
+    private List<Long> taskIds;
+    public List<Long> getTaskIds() { return taskIds; }
+    public void setTaskIds(List<Long> taskIds) { this.taskIds = taskIds; }
 }
