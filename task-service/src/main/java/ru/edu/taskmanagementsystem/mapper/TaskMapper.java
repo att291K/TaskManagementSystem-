@@ -16,7 +16,7 @@ public class TaskMapper {
 
     public TaskDtoResponse toDto(TaskM task) {
         TaskDtoResponse response = new TaskDtoResponse();
-        response.setId(String.valueOf(task.getId()));
+        response.setId(task.getId());
         response.setTitle(task.getTitle());
         response.setDescription(task.getDescription());
         response.setStatus(String.valueOf(task.getStatus()));
@@ -37,7 +37,7 @@ public class TaskMapper {
 
         taskMs.forEach(task -> {
             TaskDtoResponse response = new TaskDtoResponse();
-            response.setId(String.valueOf(task.getId()));
+            response.setId(task.getId());
             response.setTitle(task.getTitle());
             response.setDescription(task.getDescription());
             response.setStatus(String.valueOf(task.getStatus()));

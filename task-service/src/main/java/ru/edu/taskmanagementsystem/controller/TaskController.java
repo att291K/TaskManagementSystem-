@@ -3,23 +3,17 @@ package ru.edu.taskmanagementsystem.controller;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.edu.taskmanagementsystem.dto.TaskDtoRequest;
 import ru.edu.taskmanagementsystem.dto.TaskDtoResponse;
 import ru.edu.taskmanagementsystem.mapper.TaskMapper;
 import ru.edu.taskmanagementsystem.model.TaskM;
-import ru.edu.taskmanagementsystem.model.User;
+import ru.edu.taskmanagementsystem.model.enums.Status;
 import ru.edu.taskmanagementsystem.service.TaskService;
 
 import java.util.List;
-import java.util.Objects;
 
-//import com.fasterxml.jackson.databind.ObjectMapper;
-
-
-@Controller
+@RestController
 @RequestMapping("/tasks")
 @AllArgsConstructor
 public class TaskController {
@@ -28,9 +22,7 @@ public class TaskController {
     private final TaskMapper taskMapper;
 
     @GetMapping("/getAllTasks")
-    public ResponseEntity<@NonNull List<TaskDtoResponse>> getAllTasks() {
-        //User principal = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        //System.out.println(principal);
+    public ResponseEntity<List<TaskDtoResponse>> getAllTasks() {
         return ResponseEntity.ok(taskMapper.toDto(taskService.findAll()));
     }
 
@@ -57,5 +49,27 @@ public class TaskController {
     @GetMapping("/existsTaskById/{id}")
     public ResponseEntity<@NonNull Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.existsById(id));
+    }
+
+    @PatchMapping("/updateTask/{id}")
+    public ResponseEntity<?> updateTaskStatus(
+            @PathVariable Long id,
+            @RequestBody TaskDtoRequest taskRequest) {
+
+        System.out.println("Получен статус из JS: [" + taskRequest.getStatus() + "]"); // СМОТРИ ЭТО В ЛОГАХ
+
+        TaskM task = taskService.findById(id);
+        if (task == null) return ResponseEntity.notFound().build();
+
+        try {
+            // Убедись, что STATUS_OPTIONS в JS и Enum в Java идентичны
+            String statusFromJs = taskRequest.getStatus().trim().toUpperCase();
+            task.setStatus(Status.valueOf(statusFromJs));
+
+            return ResponseEntity.ok(taskService.updateTask(task));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: статус '" + taskRequest.getStatus() + "' не найден в Enum!");
+            return ResponseEntity.badRequest().body("Invalid status value");
+        }
     }
 }

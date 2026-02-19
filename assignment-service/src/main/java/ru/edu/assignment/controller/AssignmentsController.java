@@ -17,7 +17,6 @@ import java.net.URL;
 import java.util.List;
 
 @RestController
-@RequestMapping("/assignments")
 public class AssignmentsController {
     private final AssignmentService service;
 
@@ -26,6 +25,7 @@ public class AssignmentsController {
     }
 
     @PostMapping
+    @RequestMapping("/assignments")
     public ResponseEntity<List<Assignment>> assignments(@RequestBody AssignmentsRequestDto AssignmentsRequest) {
 
         List<Assignment> totalAssignment = service.getAssignments(AssignmentsRequest.getTaskIds());
