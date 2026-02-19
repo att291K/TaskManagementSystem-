@@ -2,8 +2,11 @@ package ru.edu.notification.controller;
 
 import ru.edu.notification.dto.ApiResponse;
 import ru.edu.notification.dto.EventDTO;
+import ru.edu.notification.dto.CreateEventRequest;
 import ru.edu.notification.model.EventLog;
+import ru.edu.notification.model.TaskEvent;
 import ru.edu.notification.service.EventService;
+import ru.edu.notification.adapter.RestRequestAdapter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +29,9 @@ import java.util.stream.Collectors;
 public class EventController {
 
     private final EventService eventService;
+    private final RestRequestAdapter requestAdapter;
+
+    // ==================== СУЩЕСТВУЮЩИЕ МЕТОДЫ ====================
 
     @GetMapping
     @Operation(
@@ -42,9 +48,8 @@ public class EventController {
         Pageable pageable = PageRequest.of(page, size);
         Page<EventLog> eventsPage = eventService.getAllEvents(pageable);
 
-        // Конвертируем Entity в DTO
         List<EventDTO> eventDTOs = eventsPage.getContent().stream()
-                .map((EventLog eventLog) -> EventDTO.fromEntity(eventLog))
+                .map(EventDTO::fromEntity)
                 .collect(Collectors.toList());
 
         Map<String, Object> response = Map.of(
@@ -141,7 +146,6 @@ public class EventController {
             description = "Создает тестовое событие для проверки работы сервиса"
     )
     public ResponseEntity<ApiResponse<EventDTO>> createTestEvent() {
-        // В реальном приложении здесь был бы вызов service.createTestEvent()
         EventDTO testEvent = new EventDTO(
                 999L,
                 "TEST_EVENT",
@@ -173,6 +177,132 @@ public class EventController {
 
         return ResponseEntity.ok(
                 ApiResponse.success("Service is healthy", health)
+        );
+    }
+
+    // ==================== НОВЫЕ МЕТОДЫ ДЛЯ REST ====================
+
+    @PostMapping
+    @Operation(
+            summary = "Создать событие через REST",
+            description = "Принимает JSON с данными события и сохраняет в БД"
+    )
+    public ResponseEntity<ApiResponse<EventDTO>> createEvent(
+            @RequestBody CreateEventRequest request) {
+        
+        TaskEvent taskEvent = requestAdapter.adapt(request);
+        eventService.saveEventFromTaskEvent(taskEvent);
+        
+        // Получаем последнее сохраненное событие для возврата (упрощенно)
+        List<EventLog> recent = eventService.getRecentEvents(1);
+        EventDTO eventDTO = recent.isEmpty() ? null : EventDTO.fromEntity(recent.get(0));
+        
+        return ResponseEntity.ok(
+                ApiResponse.success("Event created successfully via REST", eventDTO)
+        );
+    }
+
+    @PostMapping("/raw")
+    @Operation(
+            summary = "Создать событие из сырого JSON",
+            description = "Принимает произвольный JSON и пытается адаптировать его в событие"
+    )
+    public ResponseEntity<ApiResponse<EventDTO>> createEventFromRaw(
+            @RequestBody String rawJson) {
+        
+        TaskEvent taskEvent = requestAdapter.adapt(rawJson);
+        eventService.saveEventFromTaskEvent(taskEvent);
+        
+        List<EventLog> recent = eventService.getRecentEvents(1);
+        EventDTO eventDTO = recent.isEmpty() ? null : EventDTO.fromEntity(recent.get(0));
+        
+        return ResponseEntity.ok(
+                ApiResponse.success("Event created from raw JSON", eventDTO)
+        );
+    }
+
+    @PostMapping("/task/created")
+@Operation(summary = "Создать событие о создании задачи")
+public ResponseEntity<ApiResponse<EventDTO>> createTaskCreatedEvent(
+        @RequestBody CreateEventRequest request) {  // Принимаем JSON в теле
+    
+    //log.info("📥 Received task created event: {}", request);
+    
+    TaskEvent taskEvent = new TaskEvent(
+            "TASK_CREATED",
+            request.getTaskId(),
+            request.getEmployeeId() != null ? request.getEmployeeId() : 0L,
+            request.getTaskTitle(),
+            null,
+            java.time.Instant.now()
+    );
+    
+    eventService.saveEventFromTaskEvent(taskEvent);
+    
+    List<EventLog> recent = eventService.getRecentEvents(1);
+    EventDTO eventDTO = recent.isEmpty() ? null : EventDTO.fromEntity(recent.get(0));
+    
+    return ResponseEntity.ok(
+            ApiResponse.success("Task created event logged", eventDTO)
+    );
+}
+
+    @PostMapping("/task/assigned")
+    @Operation(
+            summary = "Создать событие о назначении задачи",
+            description = "Специализированный эндпоинт для события назначения задачи"
+    )
+    public ResponseEntity<ApiResponse<EventDTO>> createTaskAssignedEvent(
+            @RequestParam Long taskId,
+            @RequestParam Long employeeId,
+            @RequestParam String employeeName,
+            @RequestParam String taskTitle) {
+        
+        TaskEvent taskEvent = new TaskEvent(
+                "TASK_ASSIGNED",
+                taskId,
+                employeeId,
+                taskTitle,
+                employeeName,
+                java.time.Instant.now()
+        );
+        
+        eventService.saveEventFromTaskEvent(taskEvent);
+        
+        List<EventLog> recent = eventService.getRecentEvents(1);
+        EventDTO eventDTO = recent.isEmpty() ? null : EventDTO.fromEntity(recent.get(0));
+        
+        return ResponseEntity.ok(
+                ApiResponse.success("Task assigned event logged", eventDTO)
+        );
+    }
+
+    @PostMapping("/task/completed")
+    @Operation(
+            summary = "Создать событие о завершении задачи",
+            description = "Специализированный эндпоинт для события завершения задачи"
+    )
+    public ResponseEntity<ApiResponse<EventDTO>> createTaskCompletedEvent(
+            @RequestParam Long taskId,
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam String taskTitle) {
+        
+        TaskEvent taskEvent = new TaskEvent(
+                "TASK_COMPLETED",
+                taskId,
+                employeeId != null ? employeeId : 0L,
+                taskTitle,
+                null,
+                java.time.Instant.now()
+        );
+        
+        eventService.saveEventFromTaskEvent(taskEvent);
+        
+        List<EventLog> recent = eventService.getRecentEvents(1);
+        EventDTO eventDTO = recent.isEmpty() ? null : EventDTO.fromEntity(recent.get(0));
+        
+        return ResponseEntity.ok(
+                ApiResponse.success("Task completed event logged", eventDTO)
         );
     }
 }
